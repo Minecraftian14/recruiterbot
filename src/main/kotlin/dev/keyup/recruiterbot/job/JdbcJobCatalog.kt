@@ -3,9 +3,22 @@ package dev.keyup.recruiterbot.job
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
+import java.util.Locale
 
 @Repository
 class JdbcJobCatalog(private val jdbc: JdbcTemplate) : JobCatalog {
+    @Transactional
+    override fun create(job: NewJob): Job {
+        val skills = job.requiredSkills.canonicalTokens()
+        val keywords = job.cultureKeywords.canonicalTokens()
+        jdbc.update("INSERT INTO jobs(title, minimum_experience, tagline) VALUES (?, ?, ?)", job.title.trim(), job.minimumExperience, job.tagline.trim())
+        val id = requireNotNull(jdbc.queryForObject("SELECT last_insert_rowid()", Long::class.java))
+        skills.forEach { jdbc.update("INSERT INTO job_required_skills(job_id, skill) VALUES (?, ?)", id, it) }
+        keywords.forEach { jdbc.update("INSERT INTO job_culture_keywords(job_id, keyword) VALUES (?, ?)", id, it) }
+        return Job(id, job.title.trim(), job.minimumExperience, skills, keywords, job.tagline.trim())
+    }
+
     override fun findById(id: Long): Job? = jdbc.query(
         SELECT_BY_ID,
         RowMapper { rs, _ ->
@@ -55,3 +68,5 @@ class JdbcJobCatalog(private val jdbc: JdbcTemplate) : JobCatalog {
         """
     }
 }
+
+private fun Set<String>.canonicalTokens(): Set<String> = map { it.trim().lowercase(Locale.ROOT) }.filter { it.isNotEmpty() }.toSortedSet()

@@ -332,6 +332,7 @@ If anything here is ambiguous, that's partly on purpose - recruiting requirement
 ## Implementation progress (2026-10-11)
 
 - [x] Recruiter Bot SQLite schema, migrations, and all 15 candidate / 6 job fixtures.
+- [x] Authenticated candidate/job collection listing and transactional creation endpoints with validation.
 - [x] Parameterized JDBC catalog access and deterministic two-way matching API.
 - [x] Validation, structured errors, stateless security, request IDs, metrics, and persistent admin usage reports.
 - [x] Spring Boot 4-compatible Swagger UI/OpenAPI and README.

@@ -28,6 +28,17 @@ curl.exe -u recruiter:recruiter-local http://localhost:8080/jobs/1/matches
 curl.exe -u recruiter:recruiter-local http://localhost:8080/candidates/1/matches
 ```
 
+## Candidate and job catalog API
+
+The authenticated catalog endpoints list seeded records and allow recruiters to add records. `GET /candidates` returns `{ "candidates": [...] }`; `GET /jobs` returns `{ "jobs": [...] }`. `POST /candidates` and `POST /jobs` accept JSON, return `201 Created`, and include the new resource URL in `Location`. Names/titles and token values are trimmed; skills, traits, and culture keywords are stored as lowercase, deduplicated tokens. Updates and deletion are not exposed.
+
+```powershell
+curl.exe -u recruiter:recruiter-local http://localhost:8080/candidates
+curl.exe -u recruiter:recruiter-local -H 'Content-Type: application/json' -d '{"name":"Ada Lovelace","yearsExperience":5,"availability":"IMMEDIATE","skills":["Kotlin","SQL"],"traits":["analytical"],"quirk":"Loves clear examples"}' http://localhost:8080/candidates
+curl.exe -u recruiter:recruiter-local http://localhost:8080/jobs
+curl.exe -u recruiter:recruiter-local -H 'Content-Type: application/json' -d '{"title":"Backend Engineer","minimumExperience":3,"requiredSkills":["Kotlin","SQL"],"cultureKeywords":["analytical"],"tagline":"Build reliable services"}' http://localhost:8080/jobs
+```
+
 The score is the weighted sum of:
 
 - Required-skill coverage: 70% (`matched required skills / required skills`)
@@ -70,6 +81,6 @@ Tests cover the pure score calculator and tie behavior, same-pair consistency in
 
 ## Trade-offs and limitations
 
-The candidate/job set is small, so rankings are recomputed on each request rather than stored. The weighted score is a transparent heuristic, not a hiring decision model. Synchronous SQLite telemetry is appropriate for this single-process demo but may create write contention at higher traffic. The application does not include candidate CRUD, pagination, production identity management, multi-instance coordination, or a telemetry retention job.
+The candidate/job set is small, so rankings are recomputed on each request rather than stored. The weighted score is a transparent heuristic, not a hiring decision model. Synchronous SQLite telemetry is appropriate for this single-process demo but may create write contention at higher traffic. The application does not include candidate/job update or delete operations, pagination, production identity management, multi-instance coordination, or a telemetry retention job.
 
 AI assistance disclosure: OpenAI Codex was used to inspect the assignment and repository, implement and revise code, write tests and documentation, and run the available build checks. The implementation and design choices should be reviewed and explained by the submitting developer.

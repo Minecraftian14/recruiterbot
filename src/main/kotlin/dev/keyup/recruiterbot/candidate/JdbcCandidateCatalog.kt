@@ -3,9 +3,25 @@ package dev.keyup.recruiterbot.candidate
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
+import java.util.Locale
 
 @Repository
 class JdbcCandidateCatalog(private val jdbc: JdbcTemplate) : CandidateCatalog {
+    @Transactional
+    override fun create(candidate: NewCandidate): Candidate {
+        val skills = candidate.skills.canonicalTokens()
+        val traits = candidate.traits.canonicalTokens()
+        jdbc.update(
+            "INSERT INTO candidates(name, years_experience, availability, quirk) VALUES (?, ?, ?, ?)",
+            candidate.name.trim(), candidate.yearsExperience, candidate.availability.name, candidate.quirk.trim(),
+        )
+        val id = requireNotNull(jdbc.queryForObject("SELECT last_insert_rowid()", Long::class.java))
+        skills.forEach { jdbc.update("INSERT INTO candidate_skills(candidate_id, skill) VALUES (?, ?)", id, it) }
+        traits.forEach { jdbc.update("INSERT INTO candidate_traits(candidate_id, trait) VALUES (?, ?)", id, it) }
+        return Candidate(id, candidate.name.trim(), candidate.yearsExperience, candidate.availability, skills, traits, candidate.quirk.trim())
+    }
+
     override fun findById(id: Long): Candidate? = jdbc.query(
         SELECT_BY_ID,
         RowMapper { rs, _ ->
@@ -69,3 +85,5 @@ class JdbcCandidateCatalog(private val jdbc: JdbcTemplate) : CandidateCatalog {
         """
     }
 }
+
+private fun Set<String>.canonicalTokens(): Set<String> = map { it.trim().lowercase(Locale.ROOT) }.filter { it.isNotEmpty() }.toSortedSet()

@@ -15,3 +15,12 @@ data class Candidate(
     val traits: Set<String>,
     val quirk: String,
 )
+
+data class NewCandidate(
+    val name: String,
+    val yearsExperience: Int,
+    val availability: CandidateAvailability,
+    val skills: Set<String>,
+    val traits: Set<String>,
+    val quirk: String,
+)

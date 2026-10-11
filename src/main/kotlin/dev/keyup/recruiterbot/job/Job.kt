@@ -8,3 +8,11 @@ data class Job(
     val cultureKeywords: Set<String>,
     val tagline: String,
 )
+
+data class NewJob(
+    val title: String,
+    val minimumExperience: Int,
+    val requiredSkills: Set<String>,
+    val cultureKeywords: Set<String>,
+    val tagline: String,
+)
