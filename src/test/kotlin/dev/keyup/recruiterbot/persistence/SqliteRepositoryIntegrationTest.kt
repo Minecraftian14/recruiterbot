@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.queryForObject
 import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
@@ -24,10 +25,10 @@ class SqliteRepositoryIntegrationTest @Autowired constructor(
     fun `migrations seed all records and map normalized relationships`() {
         assertEquals(15, candidates.findAll().size)
         assertEquals(6, jobs.findAll().size)
-        assertEquals(50, jdbc.queryForObject("SELECT COUNT(*) FROM candidate_skills", Int::class.java))
-        assertEquals(30, jdbc.queryForObject("SELECT COUNT(*) FROM candidate_traits", Int::class.java))
-        assertEquals(16, jdbc.queryForObject("SELECT COUNT(*) FROM job_required_skills", Int::class.java))
-        assertEquals(12, jdbc.queryForObject("SELECT COUNT(*) FROM job_culture_keywords", Int::class.java))
+        assertEquals(50, jdbc.queryForObject<Int>("SELECT COUNT(*) FROM candidate_skills"))
+        assertEquals(30, jdbc.queryForObject<Int>("SELECT COUNT(*) FROM candidate_traits"))
+        assertEquals(16, jdbc.queryForObject<Int>("SELECT COUNT(*) FROM job_required_skills"))
+        assertEquals(12, jdbc.queryForObject<Int>("SELECT COUNT(*) FROM job_culture_keywords"))
         assertEquals(setOf("deduction", "forensics", "pattern-recognition"), candidates.findById(1)?.skills)
         assertEquals(setOf("analytical", "autonomous"), jobs.findById(1)?.cultureKeywords)
         assertNull(candidates.findById(999))

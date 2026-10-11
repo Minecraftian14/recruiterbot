@@ -8,7 +8,13 @@ import java.time.Clock
 class JdbcApiUsageRecorder(private val jdbc: JdbcTemplate) : ApiUsageRecorder {
     private val clock = Clock.systemUTC()
 
-    override fun record(requestId: String, method: String, routeTemplate: String, statusCode: Int, durationMillis: Long) {
+    override fun record(
+        requestId: String,
+        method: String,
+        routeTemplate: String,
+        statusCode: Int,
+        durationMillis: Long
+    ) {
         jdbc.update(
             INSERT_EVENT,
             clock.millis(), requestId, method, routeTemplate, statusCode, durationMillis.coerceAtLeast(0),

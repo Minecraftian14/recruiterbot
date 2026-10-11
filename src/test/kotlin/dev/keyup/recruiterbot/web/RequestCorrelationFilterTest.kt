@@ -47,7 +47,7 @@ class RequestCorrelationFilterTest {
         }
         val response = MockHttpServletResponse()
 
-        filter.doFilter(request, response, FilterChain { _, _ -> })
+        filter.doFilter(request, response) { _, _ -> }
 
         assertTrue(response.getHeader(RequestCorrelationFilter.REQUEST_ID_HEADER).orEmpty().matches(Regex("[0-9a-f-]{36}")))
     }

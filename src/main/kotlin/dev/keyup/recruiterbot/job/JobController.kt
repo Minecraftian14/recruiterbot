@@ -1,7 +1,6 @@
 package dev.keyup.recruiterbot.job
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -28,7 +27,15 @@ class JobController(private val catalog: JobCatalog) {
         require(request.requiredSkills.none(String::isBlank) && request.cultureKeywords.none(String::isBlank)) {
             "Skills and culture keywords must not contain blank values."
         }
-        val job = catalog.create(NewJob(request.title, request.minimumExperience, request.requiredSkills.toSet(), request.cultureKeywords.toSet(), request.tagline))
+        val job = catalog.create(
+            NewJob(
+                request.title,
+                request.minimumExperience,
+                request.requiredSkills.toSet(),
+                request.cultureKeywords.toSet(),
+                request.tagline
+            )
+        )
         val location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(job.id).toUri()
         return ResponseEntity.created(location).body(job)
     }

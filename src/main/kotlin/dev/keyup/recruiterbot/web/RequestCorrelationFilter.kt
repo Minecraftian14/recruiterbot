@@ -1,8 +1,8 @@
 package dev.keyup.recruiterbot.web
 
 import dev.keyup.recruiterbot.usage.ApiUsageRecorder
-import jakarta.servlet.FilterChain
 import jakarta.servlet.Filter
+import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
@@ -13,7 +13,7 @@ import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerMapping
-import java.util.UUID
+import java.util.*
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -52,9 +52,9 @@ class RequestCorrelationFilter(private val usageRecorder: ApiUsageRecorder) : Fi
 
     private fun isRecordable(route: String): Boolean =
         !route.startsWith("/actuator/") &&
-            !route.startsWith("/swagger-ui") &&
-            !route.startsWith("/v3/api-docs") &&
-            route != "/api/v1/admin/usage"
+                !route.startsWith("/swagger-ui") &&
+                !route.startsWith("/v3/api-docs") &&
+                route != "/api/v1/admin/usage"
 
     private fun safeKnownRoute(path: String): String? = when {
         JOB_MATCH_PATH.matches(path) -> "/jobs/{id}/matches"

@@ -9,12 +9,10 @@ import jakarta.validation.constraints.Size
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
-import java.net.URI
 
 @Validated
 @RestController
@@ -28,9 +26,17 @@ class CandidateController(private val catalog: CandidateCatalog) {
     fun create(@Valid @RequestBody request: CreateCandidateRequest): ResponseEntity<Candidate> {
         require(request.skills.none(String::isBlank) && request.traits.none(String::isBlank)) { "Skills and traits must not contain blank values." }
         val candidate = catalog.create(
-            NewCandidate(request.name, request.yearsExperience, request.availability, request.skills.toSet(), request.traits.toSet(), request.quirk),
+            NewCandidate(
+                request.name,
+                request.yearsExperience,
+                request.availability,
+                request.skills.toSet(),
+                request.traits.toSet(),
+                request.quirk
+            ),
         )
-        val location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(candidate.id).toUri()
+        val location =
+            ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(candidate.id).toUri()
         return ResponseEntity.created(location).body(candidate)
     }
 }

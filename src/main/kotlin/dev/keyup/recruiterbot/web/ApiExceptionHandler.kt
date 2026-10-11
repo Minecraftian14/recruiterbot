@@ -3,6 +3,7 @@ package dev.keyup.recruiterbot.web
 import dev.keyup.recruiterbot.matching.MatchingResourceNotFound
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.http.HttpStatus
@@ -30,7 +31,7 @@ class ApiExceptionHandler {
         HttpMessageNotReadableException::class,
     )
     fun badRequest(error: Exception, request: HttpServletRequest) =
-        problem(HttpStatus.BAD_REQUEST, "The request contains an invalid value.", "invalid_request", request)
+        problem(HttpStatus.BAD_REQUEST, error.message ?: "The request contains an invalid value.", "invalid_request", request)
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun illegalArgument(error: IllegalArgumentException, request: HttpServletRequest) =
@@ -38,11 +39,20 @@ class ApiExceptionHandler {
 
     @ExceptionHandler(Exception::class)
     fun unexpected(error: Exception, request: HttpServletRequest): ResponseEntity<ProblemDetail> {
-        logger.error("Unhandled request failure requestId={}", MDC.get(RequestCorrelationFilter.REQUEST_ID_MDC_KEY), error)
+        logger.error(
+            "Unhandled request failure requestId={}",
+            MDC.get(RequestCorrelationFilter.REQUEST_ID_MDC_KEY),
+            error
+        )
         return problem(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.", "internal_error", request)
     }
 
-    private fun problem(status: HttpStatus, detail: String, code: String, request: HttpServletRequest): ResponseEntity<ProblemDetail> {
+    private fun problem(
+        status: HttpStatus,
+        detail: String,
+        code: String,
+        request: HttpServletRequest
+    ): ResponseEntity<ProblemDetail> {
         val body = ProblemDetail.forStatusAndDetail(status, detail)
         body.type = URI.create("about:blank")
         body.instance = URI.create(request.requestURI)
@@ -52,6 +62,6 @@ class ApiExceptionHandler {
     }
 
     private companion object {
-        val logger = LoggerFactory.getLogger(ApiExceptionHandler::class.java)
+        val logger: Logger = LoggerFactory.getLogger(ApiExceptionHandler::class.java)
     }
 }

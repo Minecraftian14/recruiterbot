@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.queryForObject
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -23,9 +24,8 @@ class MatchingApiIntegrationTest @Autowired constructor(
 ) {
     @Test
     fun `job match endpoint returns ranked candidates with reasons`() {
-        val before = jdbc.queryForObject(
+        val before = jdbc.queryForObject<Long>(
             "SELECT COUNT(*) FROM api_usage_events WHERE route_template = ?",
-            Long::class.java,
             "/jobs/{id}/matches",
         ) ?: 0L
         mockMvc.perform(get("/jobs/1/matches").with(httpBasic("test-user", "test-password")))
@@ -35,9 +35,8 @@ class MatchingApiIntegrationTest @Autowired constructor(
             .andExpect(jsonPath("$.matches.length()").value(15))
             .andExpect(jsonPath("$.matches[0].score").isNumber)
             .andExpect(jsonPath("$.matches[0].reason").isString)
-        val after = jdbc.queryForObject(
+        val after = jdbc.queryForObject<Long>(
             "SELECT COUNT(*) FROM api_usage_events WHERE route_template = ?",
-            Long::class.java,
             "/jobs/{id}/matches",
         ) ?: 0L
         org.junit.jupiter.api.Assertions.assertEquals(before + 1, after)
@@ -66,9 +65,8 @@ class MatchingApiIntegrationTest @Autowired constructor(
 
     @Test
     fun `authentication and documentation access follow the policy`() {
-        val beforeUnauthorized = jdbc.queryForObject(
+        val beforeUnauthorized = jdbc.queryForObject<Long>(
             "SELECT COUNT(*) FROM api_usage_events WHERE route_template = ? AND status_code = ?",
-            Long::class.java,
             "/jobs/{id}/matches",
             401,
         ) ?: 0L
@@ -76,9 +74,8 @@ class MatchingApiIntegrationTest @Autowired constructor(
             .andExpect(status().isUnauthorized)
             .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
             .andExpect(jsonPath("$.code").value("unauthorized"))
-        val afterUnauthorized = jdbc.queryForObject(
+        val afterUnauthorized = jdbc.queryForObject<Long>(
             "SELECT COUNT(*) FROM api_usage_events WHERE route_template = ? AND status_code = ?",
-            Long::class.java,
             "/jobs/{id}/matches",
             401,
         ) ?: 0L
@@ -96,9 +93,8 @@ class MatchingApiIntegrationTest @Autowired constructor(
 
     @Test
     fun `usage and operational metrics require admin role`() {
-        val usageEventsBefore = jdbc.queryForObject(
+        val usageEventsBefore = jdbc.queryForObject<Long>(
             "SELECT COUNT(*) FROM api_usage_events WHERE route_template = ?",
-            Long::class.java,
             "/api/v1/admin/usage",
         ) ?: 0L
         mockMvc.perform(get("/api/v1/admin/usage?from=2026-10-11&to=2026-10-11").with(httpBasic("test-user", "test-password")))
@@ -127,9 +123,8 @@ class MatchingApiIntegrationTest @Autowired constructor(
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.name").value("recruiterbot.match.requests"))
             .andExpect(jsonPath("$.availableTags[0].tag").value("direction"))
-        val usageEventsAfter = jdbc.queryForObject(
+        val usageEventsAfter = jdbc.queryForObject<Long>(
             "SELECT COUNT(*) FROM api_usage_events WHERE route_template = ?",
-            Long::class.java,
             "/api/v1/admin/usage",
         ) ?: 0L
         org.junit.jupiter.api.Assertions.assertEquals(usageEventsBefore, usageEventsAfter)

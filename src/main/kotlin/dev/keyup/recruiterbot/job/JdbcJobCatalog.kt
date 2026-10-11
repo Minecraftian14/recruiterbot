@@ -1,10 +1,10 @@
 package dev.keyup.recruiterbot.job
 
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.core.RowMapper
+import org.springframework.jdbc.core.queryForObject
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-import java.util.Locale
+import java.util.*
 
 @Repository
 class JdbcJobCatalog(private val jdbc: JdbcTemplate) : JobCatalog {
@@ -12,8 +12,13 @@ class JdbcJobCatalog(private val jdbc: JdbcTemplate) : JobCatalog {
     override fun create(job: NewJob): Job {
         val skills = job.requiredSkills.canonicalTokens()
         val keywords = job.cultureKeywords.canonicalTokens()
-        jdbc.update("INSERT INTO jobs(title, minimum_experience, tagline) VALUES (?, ?, ?)", job.title.trim(), job.minimumExperience, job.tagline.trim())
-        val id = requireNotNull(jdbc.queryForObject("SELECT last_insert_rowid()", Long::class.java))
+        jdbc.update(
+            "INSERT INTO jobs(title, minimum_experience, tagline) VALUES (?, ?, ?)",
+            job.title.trim(),
+            job.minimumExperience,
+            job.tagline.trim()
+        )
+        val id = requireNotNull(jdbc.queryForObject<Long>("SELECT last_insert_rowid()"))
         skills.forEach { jdbc.update("INSERT INTO job_required_skills(job_id, skill) VALUES (?, ?)", id, it) }
         keywords.forEach { jdbc.update("INSERT INTO job_culture_keywords(job_id, keyword) VALUES (?, ?)", id, it) }
         return Job(id, job.title.trim(), job.minimumExperience, skills, keywords, job.tagline.trim())
@@ -21,30 +26,27 @@ class JdbcJobCatalog(private val jdbc: JdbcTemplate) : JobCatalog {
 
     override fun findById(id: Long): Job? = jdbc.query(
         SELECT_BY_ID,
-        RowMapper { rs, _ ->
+        { rs, _ ->
             JobRow(rs.getLong("id"), rs.getString("title"), rs.getInt("minimum_experience"), rs.getString("tagline"))
         },
         id,
-        ).singleOrNull()?.let { row ->
-            val skills = jdbc.query(SKILLS_FOR_JOB, RowMapper { rs, _ -> rs.getString("skill") }, id).toSortedSet()
-            val keywords = jdbc.query(CULTURE_FOR_JOB, RowMapper { rs, _ -> rs.getString("keyword") }, id).toSortedSet()
-            row.toJob(skills, keywords)
-        }
+    ).singleOrNull()?.let { row ->
+        val skills = jdbc.query(SKILLS_FOR_JOB, { rs, _ -> rs.getString("skill") }, id).toSortedSet()
+        val keywords = jdbc.query(CULTURE_FOR_JOB, { rs, _ -> rs.getString("keyword") }, id).toSortedSet()
+        row.toJob(skills, keywords)
+    }
 
     override fun findAll(): List<Job> = jdbc.query(
         SELECT_ALL,
-        RowMapper { rs, _ ->
-            JobRow(rs.getLong("id"), rs.getString("title"), rs.getInt("minimum_experience"), rs.getString("tagline"))
-        },
-    ).let { rows ->
+    ) { rs, _ ->
+        JobRow(rs.getLong("id"), rs.getString("title"), rs.getInt("minimum_experience"), rs.getString("tagline"))
+    }.let { rows ->
         val skills = jdbc.query(
             "SELECT job_id, skill FROM job_required_skills ORDER BY job_id, skill",
-            RowMapper { rs, _ -> rs.getLong("job_id") to rs.getString("skill") },
-        ).groupBy({ it.first }, { it.second })
+        ) { rs, _ -> rs.getLong("job_id") to rs.getString("skill") }.groupBy({ it.first }, { it.second })
         val keywords = jdbc.query(
             "SELECT job_id, keyword FROM job_culture_keywords ORDER BY job_id, keyword",
-            RowMapper { rs, _ -> rs.getLong("job_id") to rs.getString("keyword") },
-        ).groupBy({ it.first }, { it.second })
+        ) { rs, _ -> rs.getLong("job_id") to rs.getString("keyword") }.groupBy({ it.first }, { it.second })
         rows.map { row -> row.toJob(skills[row.id].orEmpty().toSortedSet(), keywords[row.id].orEmpty().toSortedSet()) }
     }
 
@@ -69,4 +71,5 @@ class JdbcJobCatalog(private val jdbc: JdbcTemplate) : JobCatalog {
     }
 }
 
-private fun Set<String>.canonicalTokens(): Set<String> = map { it.trim().lowercase(Locale.ROOT) }.filter { it.isNotEmpty() }.toSortedSet()
+private fun Set<String>.canonicalTokens(): Set<String> =
+    map { it.trim().lowercase(Locale.ROOT) }.filter { it.isNotEmpty() }.toSortedSet()

@@ -1,7 +1,6 @@
 package dev.keyup.recruiterbot.usage
 
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.core.RowMapper
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -19,7 +18,7 @@ class UsageStatisticsService(private val jdbc: JdbcTemplate) {
         val endExclusiveMillis = to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
         val events = jdbc.query(
             SELECT_EVENTS_IN_RANGE,
-            RowMapper { rs, _ ->
+            { rs, _ ->
                 UsageRow(rs.getString("route_template"), rs.getInt("status_code"), rs.getLong("duration_ms"))
             },
             startMillis,
@@ -28,7 +27,13 @@ class UsageStatisticsService(private val jdbc: JdbcTemplate) {
         val statuses = events.groupingBy { it.statusCode }.eachCount().toSortedMap()
             .map { (status, count) -> StatusUsage(status, count.toLong()) }
         val routes = events.groupBy { it.routeTemplate }.toSortedMap()
-            .map { (route, rows) -> RouteUsage(route, rows.size.toLong(), rows.count { it.statusCode >= 400 }.toLong()) }
+            .map { (route, rows) ->
+                RouteUsage(
+                    route,
+                    rows.size.toLong(),
+                    rows.count { it.statusCode >= 400 }.toLong()
+                )
+            }
         val durations = events.map { it.durationMillis }.sorted()
         val errorCount = events.count { it.statusCode >= 400 }.toLong()
         val latency = if (durations.isEmpty()) {
@@ -38,7 +43,16 @@ class UsageStatisticsService(private val jdbc: JdbcTemplate) {
             LatencyUsage(durations.average(), durations[p95Index], durations.last())
         }
         val errorRate = if (events.isEmpty()) 0.0 else errorCount * 100.0 / events.size
-        return UsageStatisticsResponse(from.toString(), to.toString(), events.size.toLong(), errorCount, errorRate, statuses, routes, latency)
+        return UsageStatisticsResponse(
+            from.toString(),
+            to.toString(),
+            events.size.toLong(),
+            errorCount,
+            errorRate,
+            statuses,
+            routes,
+            latency
+        )
     }
 
     private data class UsageRow(val routeTemplate: String, val statusCode: Int, val durationMillis: Long)

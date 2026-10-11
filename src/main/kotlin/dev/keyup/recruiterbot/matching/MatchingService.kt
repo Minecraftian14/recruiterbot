@@ -64,4 +64,4 @@ class MatchingService(
     }
 }
 
-class MatchingResourceNotFound(val resource: String, val id: Long) : RuntimeException("$resource $id was not found")
+class MatchingResourceNotFound(resource: String, val id: Long) : RuntimeException("$resource $id was not found")

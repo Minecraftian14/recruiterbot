@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class RecruiterbotApplication
 
 fun main(args: Array<String>) {
-	runApplication<RecruiterbotApplication>(*args)
+    runApplication<RecruiterbotApplication>(*args)
 }
