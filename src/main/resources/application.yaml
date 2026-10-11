@@ -11,15 +11,22 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  jmx:
+    enabled: true
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics
+    jmx:
+      exposure:
+        include: "env,configprops"
   endpoint:
     health:
       show-details: never
+    env:
+      show-values: "always"
 
 springdoc:
   api-docs:
