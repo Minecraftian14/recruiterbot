@@ -48,7 +48,7 @@ class SecurityConfiguration {
         .authorizeHttpRequests { auth ->
             auth.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
             auth.requestMatchers("/actuator/health", "/actuator/info").permitAll()
-            auth.requestMatchers("/api/v1/admin/usage").hasRole("ADMIN")
+            auth.requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
             auth.requestMatchers("/actuator/metrics/**").hasRole("ADMIN")
             auth.requestMatchers("/actuator/**").denyAll()
             auth.anyRequest().authenticated()

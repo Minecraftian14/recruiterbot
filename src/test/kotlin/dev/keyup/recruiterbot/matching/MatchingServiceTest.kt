@@ -3,8 +3,10 @@ package dev.keyup.recruiterbot.matching
 import dev.keyup.recruiterbot.candidate.Candidate
 import dev.keyup.recruiterbot.candidate.CandidateAvailability
 import dev.keyup.recruiterbot.candidate.CandidateCatalog
+import dev.keyup.recruiterbot.candidate.NewCandidate
 import dev.keyup.recruiterbot.job.Job
 import dev.keyup.recruiterbot.job.JobCatalog
+import dev.keyup.recruiterbot.job.NewJob
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -17,10 +19,12 @@ class MatchingServiceTest {
         object : CandidateCatalog {
             override fun findById(id: Long) = candidate.takeIf { it.id == id }
             override fun findAll() = listOf(candidate)
+            override fun create(candidate: NewCandidate): Candidate = error("This test catalog is read-only")
         },
         object : JobCatalog {
             override fun findById(id: Long) = job.takeIf { it.id == id }
             override fun findAll() = listOf(job)
+            override fun create(job: NewJob): Job = error("This test catalog is read-only")
         },
         SimpleMeterRegistry(),
     )

@@ -1,5 +1,8 @@
 package dev.keyup.recruiterbot.job
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.PositiveOrZero
@@ -16,9 +19,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 @RestController
 class JobController(private val catalog: JobCatalog) {
     @GetMapping("/jobs")
+    @Operation(security = [SecurityRequirement(name = "basicAuth")])
     fun list(): JobListResponse = JobListResponse(catalog.findAll())
 
     @PostMapping("/jobs")
+    @Operation(security = [SecurityRequirement(name = "basicAuth")])
     fun create(@Valid @RequestBody request: CreateJobRequest): ResponseEntity<Job> {
         require(request.requiredSkills.none(String::isBlank) && request.cultureKeywords.none(String::isBlank)) {
             "Skills and culture keywords must not contain blank values."

@@ -1,10 +1,12 @@
 package dev.keyup.recruiterbot.web
 
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
@@ -18,7 +20,16 @@ import org.springframework.http.MediaType
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class CatalogApiIntegrationTest @Autowired constructor(private val mockMvc: MockMvc) {
+class CatalogApiIntegrationTest @Autowired constructor(
+    private val mockMvc: MockMvc,
+    private val jdbc: JdbcTemplate,
+) {
+    @AfterEach
+    fun removeCreatedFixtures() {
+        jdbc.update("DELETE FROM candidates WHERE name = ?", "API Candidate")
+        jdbc.update("DELETE FROM jobs WHERE title = ?", "API Role")
+    }
+
     @Test
     fun `candidate can be created with canonical tokens and listed`() {
         val response = mockMvc.perform(

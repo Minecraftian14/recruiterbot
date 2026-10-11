@@ -1,5 +1,7 @@
 package dev.keyup.recruiterbot.candidate
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.PositiveOrZero
@@ -18,9 +20,11 @@ import java.net.URI
 @RestController
 class CandidateController(private val catalog: CandidateCatalog) {
     @GetMapping("/candidates")
+    @Operation(security = [SecurityRequirement(name = "basicAuth")])
     fun list(): CandidateListResponse = CandidateListResponse(catalog.findAll())
 
     @PostMapping("/candidates")
+    @Operation(security = [SecurityRequirement(name = "basicAuth")])
     fun create(@Valid @RequestBody request: CreateCandidateRequest): ResponseEntity<Candidate> {
         require(request.skills.none(String::isBlank) && request.traits.none(String::isBlank)) { "Skills and traits must not contain blank values." }
         val candidate = catalog.create(
