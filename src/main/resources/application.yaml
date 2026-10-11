@@ -1,3 +1,42 @@
 spring:
+  profiles:
+    default: local
   application:
     name: recruiterbot
+  datasource:
+    url: ${RECRUITERBOT_DB_URL:jdbc:sqlite:./recruiterbot.db}
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      connection-init-sql: PRAGMA foreign_keys=ON
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: never
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui/index.html
+
+recruiterbot:
+  security:
+    user:
+      username: ${RECRUITERBOT_USER}
+      password: ${RECRUITERBOT_PASSWORD}
+    admin:
+      username: ${RECRUITERBOT_ADMIN_USER}
+      password: ${RECRUITERBOT_ADMIN_PASSWORD}
+
+logging:
+  structured:
+    format:
+      console: logstash

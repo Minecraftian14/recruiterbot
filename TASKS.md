@@ -326,3 +326,14 @@ Submit your answers as a single .sql file (e.g. sql_detective.sql), one query pe
 ### **Questions?**
 
 If anything here is ambiguous, that's partly on purpose - recruiting requirements in the real world are rarely fully specified either, and we're curious how you handle that. But if you're genuinely stuck on something outside the spirit of the exercise, reach out and ask. _Good luck, and have fun with it - Sherlock is counting on you._
+
+---
+
+## Implementation progress (2026-10-11)
+
+- [x] Recruiter Bot SQLite schema, migrations, and all 15 candidate / 6 job fixtures.
+- [x] Parameterized JDBC catalog access and deterministic two-way matching API.
+- [x] Validation, structured errors, stateless security, request IDs, metrics, and persistent admin usage reports.
+- [x] Spring Boot 4-compatible Swagger UI/OpenAPI and README.
+- [x] Independent `sql_detective.sql` with all five queries and SQLite execution coverage.
+- [x] `gradle check` passes; clean SQLite migration and live HTTP smoke checks pass.

@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+.gradle-local/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -38,3 +39,9 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+# Local SQLite databases and logs
+*.db
+*.db-shm
+*.db-wal
+*.log

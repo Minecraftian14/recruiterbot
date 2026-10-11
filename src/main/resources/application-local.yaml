@@ -1,0 +1,8 @@
+recruiterbot:
+  security:
+    user:
+      username: ${RECRUITERBOT_USER:recruiter}
+      password: ${RECRUITERBOT_PASSWORD:recruiter-local}
+    admin:
+      username: ${RECRUITERBOT_ADMIN_USER:admin}
+      password: ${RECRUITERBOT_ADMIN_PASSWORD:admin-local}

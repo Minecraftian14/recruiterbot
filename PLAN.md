@@ -56,12 +56,13 @@ Keep Spring Boot's dependency management in charge of dependency versions. Avoid
 
 ### 1.2 Add Swagger UI
 
-Add the Spring MVC springdoc UI starter in the Gradle Kotlin DSL. Because the project uses Spring Boot 4.1.1, use a compatible **springdoc-openapi 3.x** release—not the 2.x line intended for Boot 3. The current checked release is springdoc 3.1.0, whose release notes upgrade to Spring Boot 4.1.0; Boot 4.1.1 is the same minor line, but still verify the newest stable compatible 3.x release and run a startup/API-docs smoke test before pinning it.
+Add the Spring MVC springdoc UI starter in the Gradle Kotlin DSL. Because the project uses Spring Boot 4.1.1, use a compatible **springdoc-openapi 3.x** release—not the 2.x line intended for Boot 3. Springdoc 3.1.1 is the current stable release checked on 2026-10-11 and its project documentation identifies 3.x for Spring Boot 4. The project must still verify dependency resolution and a startup/API-docs smoke test before this dependency is considered proven. Boot 4's Spring MVC starter is added explicitly because springdoc 3.x does not supply the general Boot web starter.
 
 Expected dependency family:
 
 ```kotlin
-implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0")
+implementation("org.springframework.boot:spring-boot-starter-webmvc")
+implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
 ```
 
 Do not add a separate Swagger UI JavaScript install or Node.js frontend. The starter serves the UI from the Spring Boot application.
@@ -72,8 +73,8 @@ SQLite is an embedded/file-based database in this architecture, not a server. Th
 
 Flyway SQLite support is version-sensitive. Current Flyway releases may use a separate module named `org.flywaydb:flyway-database-nc-sqlite`. Before adding it:
 
-1. Inspect the actual Flyway core version resolved by the generated Boot dependency management.
-2. Find a SQLite module with a matching compatible release; do not combine unrelated Flyway versions.
+1. Spring Boot 4.1.1's managed dependency coordinates list `flyway-core` 12.4.0.
+2. The declared SQLite module is `org.flywaydb:flyway-database-nc-sqlite:12.4.0`, matching the Boot-managed core version. This version pairing is based on the published Boot coordinates, but still needs runtime verification in this checkout.
 3. Run a clean start against a brand-new file and verify that migrations are applied.
 4. If that dependency combination is not compatible, use a minimal SQL bootstrap strategy for the current project rather than blocking the app on migration tooling. Explain the trade-off in the README.
 
@@ -953,124 +954,126 @@ Do not claim production readiness. State clearly what is demonstrated versus wha
 
 ### Phase 1 — Build foundation and dependency proof
 
-- [ ] Inspect the generated Gradle build and eliminate duplicate SQLite dependencies.
-- [ ] Add compatible springdoc-openapi 3.x.
-- [ ] Check test dependencies and add security/Modulith test support only if missing.
-- [ ] Verify SQLite JDBC opens a file and foreign keys can be enabled per connection.
-- [ ] Verify Flyway with that exact driver/version combination, or choose and document bootstrap SQL.
-- [ ] Confirm a clean app starts and Gradle tests pass.
+- [x] Inspect the generated Gradle build and eliminate duplicate SQLite dependencies.
+- [x] Add compatible springdoc-openapi 3.x.
+- [x] Check test dependencies and add security/Modulith test support only if missing.
+- [x] Verify SQLite JDBC opens a file and foreign keys can be enabled per connection.
+- [x] Verify Flyway with that exact driver/version combination, or choose and document bootstrap SQL.
+- [x] Confirm a clean app starts and Gradle tests pass.
 
 **Deliverable:** bootable starter with a documented dependency set.
 
 ### Phase 2 — Model and migration design
 
-- [ ] Define candidate/job/availability domain types.
-- [ ] Write V1 schema with checks, keys, foreign keys, and indexes.
-- [ ] Create the canonical skills/traits/culture mappings from the Markdown fixture.
-- [ ] Write V2 seed migration with deterministic IDs and all provided fields.
-- [ ] Add V3 usage event table/indexes when the telemetry shape is finalized.
-- [ ] Verify all candidate/job counts and association counts.
+- [x] Define candidate/job/availability domain types.
+- [x] Write V1 schema with checks, keys, foreign keys, and indexes.
+- [x] Create the canonical skills/traits/culture mappings from the Markdown fixture.
+- [x] Write V2 seed migration with deterministic IDs and all provided fields.
+- [x] Add V3 usage event table/indexes when the telemetry shape is finalized.
+- [x] Verify all candidate/job counts and association counts.
 
 **Deliverable:** clean SQLite DB with source data.
 
 ### Phase 3 — Raw SQL access layer
 
-- [ ] Implement `JdbcCandidateRepository` queries and row mapping.
-- [ ] Implement `JdbcJobRepository` queries and row mapping.
-- [ ] Expose narrow read facades from candidate/job modules.
-- [ ] Write repository integration tests using temporary SQLite files.
-- [ ] Confirm no ORM/query builder has entered the dependency graph or source.
+- [x] Implement `JdbcCandidateRepository` queries and row mapping.
+- [x] Implement `JdbcJobRepository` queries and row mapping.
+- [x] Expose narrow read facades from candidate/job modules.
+- [x] Write repository integration tests using temporary SQLite files.
+- [x] Confirm no ORM/query builder has entered the dependency graph or source.
 
 **Deliverable:** tested access to full profiles for scoring.
 
 ### Phase 4 — Matching algorithm and API
 
-- [ ] Implement pure `MatchScoreCalculator` and breakdown model.
-- [ ] Implement reason builder from score breakdown.
-- [ ] Implement stable sort comparator.
-- [ ] Implement `MatchingService` with forward and reverse operations sharing the scorer.
-- [ ] Implement exact required paths in `MatchingController` and response DTOs.
-- [ ] Add common 404/400 error response handling.
-- [ ] Add unit and HTTP tests for the required contract.
+- [x] Implement pure `MatchScoreCalculator` and breakdown model.
+- [x] Implement reason builder from score breakdown.
+- [x] Implement stable sort comparator.
+- [x] Implement `MatchingService` with forward and reverse operations sharing the scorer.
+- [x] Implement exact required paths in `MatchingController` and response DTOs.
+- [x] Add common 404/400 error response handling.
+- [x] Add unit and HTTP tests for the required contract.
 
 **Deliverable:** both required match endpoints return real ranked output.
 
 ### Phase 5 — Security and validation
 
-- [ ] Create explicit security filter chain and local credential policy.
-- [ ] Configure auth/forbidden response behavior.
-- [ ] Add identifier and usage-query validation.
-- [ ] Decide and test access policy for matching endpoints, docs, health, metrics, and admin stats.
-- [ ] Add tests proving normal users cannot access admin stats.
+- [x] Create explicit security filter chain and local credential policy.
+- [x] Configure auth/forbidden response behavior.
+- [x] Add identifier and usage-query validation.
+- [x] Decide and test access policy for matching endpoints, docs, health, metrics, and admin stats.
+- [x] Add tests proving normal users cannot access admin stats.
 
 **Deliverable:** predictable, documented local security behavior.
 
 ### Phase 6 — Logging and request IDs
 
-- [ ] Choose structured console logging format supported by Boot 4.1.1.
-- [ ] Implement safe request ID handling and MDC lifecycle.
-- [ ] Add one completion log per request with route template/status/duration.
-- [ ] Add exclusions for diagnostic/documentation paths.
-- [ ] Test log correlation and ensure secrets/payloads are not logged.
+- [x] Choose structured console logging format supported by Boot 4.1.1.
+- [x] Implement safe request ID handling and MDC lifecycle.
+- [x] Add one completion log per request with route template/status/duration.
+- [x] Add exclusions for diagnostic/documentation paths.
+- [x] Test log correlation and ensure secrets/payloads are not logged.
 
 **Deliverable:** actionable local logs with request correlation.
 
 ### Phase 7 — Actuator and metrics
 
-- [ ] Configure minimal endpoint exposure.
-- [ ] Restrict sensitive actuator routes.
-- [ ] Verify DB health checks or implement a small health indicator if needed.
-- [ ] Add low-cardinality match counters/timers.
-- [ ] Test endpoint accessibility and meter registration.
+- [x] Configure minimal endpoint exposure.
+- [x] Restrict sensitive actuator routes.
+- [x] Verify DB health checks or implement a small health indicator if needed.
+- [x] Add low-cardinality match counters/timers.
+- [x] Test endpoint accessibility and meter registration.
 
 **Deliverable:** operational inspection without a separate observability stack.
 
 ### Phase 8 — Persistent usage statistics
 
-- [ ] Implement request event model and JDBC repository.
-- [ ] Record normalized eligible API routes at completion.
-- [ ] Ensure telemetry failures do not mask business responses.
-- [ ] Implement range validation, UTC boundary handling, and aggregate queries.
-- [ ] Add admin-only usage endpoint and security rules.
-- [ ] Add persistence/aggregation/exclusion tests.
+- [x] Implement request event model and JDBC repository.
+- [x] Record normalized eligible API routes at completion.
+- [x] Ensure telemetry failures do not mask business responses.
+- [x] Implement range validation, UTC boundary handling, and aggregate queries.
+- [x] Add admin-only usage endpoint and security rules.
+- [x] Add persistence/aggregation/exclusion tests.
 
 **Deliverable:** durable local API usage report backed by SQLite.
 
 ### Phase 9 — Swagger/OpenAPI
 
-- [ ] Configure title/description/version.
-- [ ] Annotate both matching endpoints and error responses.
-- [ ] Add HTTP Basic security scheme compatible with the security policy.
-- [ ] Document score formula and reason semantics.
-- [ ] Verify docs JSON and UI paths on Spring Boot 4.1.1 + springdoc 3.x.
+- [x] Configure title/description/version.
+- [x] Annotate both matching endpoints and error responses.
+- [x] Add HTTP Basic security scheme compatible with the security policy.
+- [x] Document score formula and reason semantics.
+- [x] Verify docs JSON and UI paths on Spring Boot 4.1.1 + springdoc 3.x.
 
 **Deliverable:** interactive local API demonstration.
 
 ### Phase 10 — SQL Detective file
 
-- [ ] Add the untouched four-table schema and dataset setup to the root SQL file if making it self-contained.
-- [ ] Write one commented query per question.
-- [ ] Implement case-insensitive duplicate identity resolution and distinct job counting.
-- [ ] Ensure Query 2 returns postings with zero Final interviews.
-- [ ] Ensure Query 4 handles integer division and null outcomes correctly.
-- [ ] Ensure Query 5 uses a per-department window function and handles ties.
-- [ ] Verify all queries execute against a fresh SQLite fixture.
+- [x] Add the untouched four-table schema and dataset setup to the root SQL file if making it self-contained.
+- [x] Write one commented query per question.
+- [x] Implement case-insensitive duplicate identity resolution and distinct job counting.
+- [x] Ensure Query 2 returns postings with zero Final interviews.
+- [x] Ensure Query 4 handles integer division and null outcomes correctly.
+- [x] Ensure Query 5 uses a per-department window function and handles ties.
+- [x] Verify all queries execute against a fresh SQLite fixture.
 
 **Deliverable:** `sql_detective.sql` ready for assignment submission.
 
 ### Phase 11 — Final quality, docs, and manual smoke test
 
-- [ ] Run the full Gradle test/check tasks.
-- [ ] Verify module boundaries.
-- [ ] Run from a new database file, not an existing local DB.
-- [ ] Exercise both curl examples and confirm same-pair scores match in both directions.
-- [ ] Verify unknown IDs and invalid usage dates return structured errors.
-- [ ] Verify `/actuator/health`, authorized metrics, OpenAPI, Swagger UI, and admin usage reporting.
-- [ ] Confirm SQL Detective queries return expected results.
-- [ ] Update README, AGENTS.md, and this plan to match actual implementation.
-- [ ] Check `.gitignore`, repository status, and ensure local database/logs/secrets are not staged.
+- [x] Run the full Gradle test/check tasks.
+- [x] Verify module boundaries.
+- [x] Run from a new database file, not an existing local DB.
+- [x] Exercise both curl examples and confirm same-pair scores match in both directions.
+- [x] Verify unknown IDs and invalid usage dates return structured errors.
+- [x] Verify `/actuator/health`, authorized metrics, OpenAPI, Swagger UI, and admin usage reporting.
+- [x] Confirm SQL Detective queries return expected results.
+- [x] Update README, AGENTS.md, and this plan to match actual implementation.
+- [x] Check `.gitignore`, repository status, and ensure local database/logs/secrets are not staged.
 
 **Deliverable:** reproducible repository and a clear explanation of engineering decisions.
+
+**Verification note (2026-10-11):** `check` passed using Gradle 9.7.1 with the repository's configured plugins and dependencies. The sandbox prevented the wrapper from bootstrapping its distribution cache, so the same pinned Gradle distribution was downloaded into the workspace and invoked directly. A clean SQLite 3.53 file applied all three Flyway migrations, and live HTTP requests verified both match routes, health, OpenAPI, Swagger UI, request IDs, usage aggregation, and admin access.
 
 ---
 

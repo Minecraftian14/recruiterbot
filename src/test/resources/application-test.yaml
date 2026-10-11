@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:./build/recruiterbot-test.db
+recruiterbot:
+  security:
+    user:
+      username: test-user
+      password: test-password
+    admin:
+      username: test-admin
+      password: test-admin-password
